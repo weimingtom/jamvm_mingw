@@ -1,0 +1,124 @@
+https://www.iteye.com/blog/weimingtom-1207874
+kill -6 <PID>
+kill -6:Aborted£¬kill -11:Segmentation fault
+
+
+
+http://cn.voidcc.com/question/p-eoctzfpf-vw.html
+
+(gdb) info line *0x004156B0
+Line 564 of "src/reflect.c" starts at address 0x41569c <invoke+518>
+   and ends at 0x4156b8 <invoke+546>.
+   
+signalException
+   
+------------------
+
+b createVMThread
+
+Breakpoint 1, createVMThread (
+    name=0x44ca34 <_Jv_RegisterClasses+4508212> "Signal Handler",
+    start=0x4331da <classlibSignalThread>) at src/thread.c:832
+832         Thread *thread = sysMalloc(sizeof(Thread));
+(gdb) bt
+#0  createVMThread (
+    name=0x44ca34 <_Jv_RegisterClasses+4508212> "Signal Handler",
+    start=0x4331da <classlibSignalThread>) at src/thread.c:832
+#1  0x0041a874 in initialiseThreadStage2 (args=0x28fe80) at src/thread.c:1469
+#2  0x0041c605 in initVM (args=0x28fe80) at src/init.c:117
+#3  0x00401c8c in main (argc=4, argv=0xdb1b08) at src/jam.c:249
+
+(gdb) bt
+#0  createVMThread (name=0x44b7e7 <_Jv_RegisterClasses+4503527> "Finalizer",
+    start=0x406c63 <finalizerThreadLoop>) at src/thread.c:832
+#1  0x00407096 in initialiseGC (args=0x28fe80) at src/alloc.c:1882
+#2  0x0041c614 in initVM (args=0x28fe80) at src/init.c:118
+#3  0x00401c8c in main (argc=4, argv=0xdb1b08) at src/jam.c:249
+
+
+
+void classlibSignalThread(Thread *self) {
+#if !defined(__MINGW32__)
+    sigset_t mask;
+#endif    
+    int sig;
+
+#if !defined(__MINGW32__)
+    sigemptyset(&mask);
+    sigaddset(&mask, SIGQUIT);
+    sigaddset(&mask, SIGINT);
+#endif
+
+    disableSuspend0(self, &self);
+    for(;;) {
+#if !defined(__MINGW32__)
+        sigwait(&mask, &sig);
+
+        /* If it was an interrupt (e.g. Ctrl-C) terminate the VM */
+        if(sig == SIGINT)
+            exitVM(0);
+
+        /* It must be a SIGQUIT.  Do a thread dump */
+        printThreadsDump(self);
+        
+move here----->#endif        
+    }
+}
+
+
+----------------------
+config.h
+
+/* defined if object allocation tracing enabled for debugging */
+/* #undef TRACEALLOC */
+#define TRACEALLOC 1
+
+/* defined if GC compaction phase tracing enabled for debugging */
+/* #undef TRACECOMPACT */
+#define TRACECOMPACT 1
+
+/* defined if interpreter direct-mode tracing enabled for debugging */
+/* #undef TRACEDIRECT */
+#define TRACEDIRECT 1
+
+/* defined if library loading/unloading tracing enabled for debugging */
+/* #undef TRACEDLL */
+#define TRACEDLL 1
+
+/* defined if object finalisation tracing enabled for debugging */
+/* #undef TRACEFNLZ */
+#define TRACEFNLZ 1
+
+/* defined if gc tracing enabled for debugging */
+/* #undef TRACEGC */
+#define TRACEGC 1
+
+/* defined if interpreter inlining tracing enabled for debugging */
+/* #undef TRACEINLINING */
+#define TRACEINLINING 1
+
+/* defined if object locking tracing enabled for debugging */
+/* #undef TRACELOCK */
+#define TRACELOCK 1
+
+/* defined if thread creation tracing enabled for debugging */
+/* #undef TRACETHREAD */
+#define TRACETHREAD 1
+
+
+---------------------------
+
+three so files put to D:\msys_v11\msys\lib
+
+
+---------------------------
+
+<<<< JCL_ThrowException > Not absolute
+<<<< JCL_ThrowException > write not supported
+<<<< JCL_ThrowException > write not supported
+
+
+------------------------------
+
+
+
